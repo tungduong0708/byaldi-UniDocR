@@ -173,6 +173,26 @@ class RAGMultiModalModel:
             Union[List[Result], List[List[Result]]]: A list of Result objects or a list of lists of Result objects.
         """
         return self.model.search(query, k, filter_metadata, return_base64_results)
+    
+    def search_image_text(
+        self,
+        query_text: str,
+        query_image: Union[Image.Image, List[Image.Image]],
+        k: int = 10,
+        filter_metadata: Optional[Dict[str,str]] = None,
+        return_base64_results: Optional[bool] = None,
+    ) -> Union[List[Result], List[List[Result]]]:
+        """Query an index.
+
+        Parameters:
+            query (Union[str, List[str]]): The query or queries to search for.
+            k (int): The number of results to return. Default is 10.
+            return_base64_results (Optional[bool]): Whether to return base64-encoded image results.
+
+        Returns:
+            Union[List[Result], List[List[Result]]]: A list of Result objects or a list of lists of Result objects.
+        """
+        return self.model.search_image_text(query_text, query_image, k, filter_metadata, return_base64_results)
 
     def get_doc_ids_to_file_names(self):
         return self.model.get_doc_ids_to_file_names()
