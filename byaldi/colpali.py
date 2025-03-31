@@ -723,20 +723,11 @@ class ColPaliModel:
         # Process query
         with torch.inference_mode():
             text_inputs, image_inputs = self.processor.embed_multimodal_query(queries_text, query_images)
-            # batch_query_text = {k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype) for k, v in batch_query_text.items()}
-
-            # batch_query_image = self.processor.process_images([q_i])
-            # batch_query_image = {k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype) for k, v in batch_query_image.items()}
-
-
-
-            # batch_combined = {
-            #     "input_ids": batch_query_text["input_ids"],
-            #     "attention_mask": batch_query_text["attention_mask"],
-            #     "pixel_values": batch_query_image["pixel_values"],
-            #     "image_grid_thw": batch_query_image["image_grid_thw"],
-            # }
-            # embeddings_query = self.model(**batch_combined)
+            text_inputs = {k: v.to(self.model.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype)
+                   for k, v in text_inputs.items()}
+    
+            image_inputs = {k: v.to(self.model.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype)
+                            for k, v in image_inputs.items()}
 
             text_outputs = self.model(**text_inputs)
             image_outputs = self.model(**image_inputs)
