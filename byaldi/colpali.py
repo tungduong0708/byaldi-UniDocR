@@ -697,8 +697,8 @@ class ColPaliModel:
         return_base64_results: Optional[bool] = None,
     ) -> Union[List[Result], List[List[Result]]]:
 
-        print("Starting search")
-        print(type(query_text), type(query_images))
+        # print("Starting search")
+        # print(type(query_text), type(query_images))
 
         # Set default value for return_base64_results if not provided
         if return_base64_results is None:
