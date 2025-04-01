@@ -739,7 +739,6 @@ class ColPaliModel:
         else:
             req_embeddings, req_embedding_ids = self.filter_embeddings(filter_metadata=filter_metadata) 
         # Compute scores
-        print(qs, req_embeddings)
         scores = self.processor.score(qs, req_embeddings).cpu().numpy()
 
         # Get top k relevant pages
