@@ -551,64 +551,65 @@ class ColPaliModel:
                 f"Document ID {doc_id} with page ID {page_id} already exists in the index"
             )
 
-        processed_image = self.processor.process_documents(image)
+        processed_images = self.processor.process_documents(image)
 
-        # Generate embedding
-        with torch.inference_mode():
-            processed_image = {
-                k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype)
-                for k, v in processed_image.items()
-            }
-            embedding = self.model(**processed_image)
+        for processed_image in processed_images:
+            # Generate embedding
+            with torch.inference_mode():
+                processed_image = {
+                    k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype)
+                    for k, v in processed_image.items()
+                }
+                embedding = self.model(**processed_image)
 
-        # Add to index
-        embed_id = len(self.indexed_embeddings)
-        self.indexed_embeddings.extend(list(torch.unbind(embedding.to("cpu"))))
-        self.embed_id_to_doc_id[embed_id] = {"doc_id": doc_id, "page_id": int(page_id)}
+            # Add to index
+            embed_id = len(self.indexed_embeddings)
+            self.indexed_embeddings.extend(list(torch.unbind(embedding.to("cpu"))))
+            self.embed_id_to_doc_id[embed_id] = {"doc_id": doc_id, "page_id": int(page_id)}
 
-        # Update highest_doc_id
-        self.highest_doc_id = max(
-            self.highest_doc_id,
-            int(doc_id) if isinstance(doc_id, int) else self.highest_doc_id,
-        )
+            # Update highest_doc_id
+            self.highest_doc_id = max(
+                self.highest_doc_id,
+                int(doc_id) if isinstance(doc_id, int) else self.highest_doc_id,
+            )
 
-        if store_collection_with_index:
-            import base64
-            import io
+            if store_collection_with_index:
+                import base64
+                import io
 
-            # Resize image while maintaining aspect ratio
-            if self.max_image_width and self.max_image_height:
-                img_width, img_height = image.size
-                aspect_ratio = img_width / img_height
-                if img_width > self.max_image_width:
-                    new_width = self.max_image_width
-                    new_height = int(new_width / aspect_ratio)
-                else:
-                    new_width = img_width
-                    new_height = img_height
-                if new_height > self.max_image_height:
-                    new_height = self.max_image_height
-                    new_width = int(new_height * aspect_ratio)
-                if self.verbose > 2:
-                    print(
-                        f"Resizing image to {new_width}x{new_height}",
-                        f"(aspect ratio {aspect_ratio:.2f}, original size {img_width}x{img_height},"
-                        f"compression {new_width/img_width * new_height/img_height:.2f})",
-                    )
-                image = image.resize((new_width, new_height), Image.LANCZOS)
+                # Resize image while maintaining aspect ratio
+                if self.max_image_width and self.max_image_height:
+                    img_width, img_height = image.size
+                    aspect_ratio = img_width / img_height
+                    if img_width > self.max_image_width:
+                        new_width = self.max_image_width
+                        new_height = int(new_width / aspect_ratio)
+                    else:
+                        new_width = img_width
+                        new_height = img_height
+                    if new_height > self.max_image_height:
+                        new_height = self.max_image_height
+                        new_width = int(new_height * aspect_ratio)
+                    if self.verbose > 2:
+                        print(
+                            f"Resizing image to {new_width}x{new_height}",
+                            f"(aspect ratio {aspect_ratio:.2f}, original size {img_width}x{img_height},"
+                            f"compression {new_width/img_width * new_height/img_height:.2f})",
+                        )
+                    image = image.resize((new_width, new_height), Image.LANCZOS)
 
-            buffered = io.BytesIO()
-            image.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
+                buffered = io.BytesIO()
+                image.save(buffered, format="PNG")
+                img_str = base64.b64encode(buffered.getvalue()).decode()
 
-            self.collection[int(embed_id)] = img_str
+                self.collection[int(embed_id)] = img_str
 
-        # Add metadata
-        if metadata:
-            self.doc_id_to_metadata[doc_id] = metadata
+            # Add metadata
+            if metadata:
+                self.doc_id_to_metadata[doc_id] = metadata
 
-        if self.verbose > 0:
-            print(f"Added page {page_id} of document {doc_id} to index.")
+            if self.verbose > 0:
+                print(f"Added page {page_id} of document {doc_id} to index.")
 
     def remove_from_index(self):
         raise NotImplementedError("This method is not implemented yet.")
