@@ -551,7 +551,7 @@ class ColPaliModel:
                 f"Document ID {doc_id} with page ID {page_id} already exists in the index"
             )
 
-        processed_image = self.processor.process_documents([image])
+        processed_image = self.processor.process_documents(image)
 
         # Generate embedding
         with torch.inference_mode():
